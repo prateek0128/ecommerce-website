@@ -1,13 +1,15 @@
 import React from "react";
 import { Box, Typography, Container, Grid } from "@mui/material";
 import "../../assets/commonStyles.scss";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PageHeader from "../../commonComponents/pageHeader";
 import { useCart } from "../../contexts/cartContext";
 import ProductCard from "../../commonComponents/productCard";
 import type { CartItem } from "../../types/cart";
 const Cart = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const backPath = location.state?.from ?? "/";
   const { cartItems, removeFromCart } = useCart();
   const totalQuantity = cartItems.reduce(
     (total, item) => total + item.quantity,
@@ -19,7 +21,7 @@ const Cart = () => {
   );
   return (
     <Container maxWidth="xl">
-      <PageHeader title="Cart" backPath="/" />
+      <PageHeader title="Cart" backPath={backPath} />
       <Grid
         container
         spacing={4}

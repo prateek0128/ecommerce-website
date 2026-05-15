@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import "../../assets/commonStyles.scss";
 import axios from "axios";
-import { Form, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../commonComponents/pageHeader";
 import AddShoppingCartRoundedIcon from "@mui/icons-material/AddShoppingCartRounded";
 import type { Product } from "../../types/product";
