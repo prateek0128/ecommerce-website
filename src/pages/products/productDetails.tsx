@@ -23,6 +23,7 @@ const ProductDetails = () => {
   const { cartItems, addToCart } = useCart();
   const [productData, setProductData] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
   const { id } = useParams();
 
   const fetchProductDetails = async () => {
@@ -98,9 +99,11 @@ const ProductDetails = () => {
               <Button
                 variant="contained"
                 startIcon={<AddShoppingCartRoundedIcon />}
+                className={added ? "addedToCart" : ""}
                 onClick={() => {
-                  //navigate("/cart");
                   addToCart(productData, quantity);
+                  setAdded(true);
+                  setTimeout(() => setAdded(false), 300);
                 }}
               >
                 Add to Cart

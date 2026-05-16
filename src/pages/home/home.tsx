@@ -5,91 +5,33 @@ import {
   CircularProgress,
   Container,
   Grid,
-  Button,
   Select,
   MenuItem,
+  Checkbox,
+  ListItemText,
+  OutlinedInput,
 } from "@mui/material";
 import axios from "axios";
 import "./home.scss";
 import "../../assets/commonStyles.scss";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Product } from "../../types/product";
 import ProductCard from "../../commonComponents/productCard";
 const Home = () => {
   const navigate = useNavigate();
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [filter, setFilter] = useState<string>("Select a category");
-
-  const data = [
-    {
-      id: 1,
-      title: "Majestic Mountain Graphic T-Shirt",
-      slug: "majestic-mountain-graphic-t-shirt",
-      price: 44,
-      description:
-        "Elevate your wardrobe with this stylish black t-shirt featuring a striking monochrome mountain range graphic. Perfect for those who love the outdoors or want to add a touch of nature-inspired design to their look, this tee is crafted from soft, breathable fabric ensuring all-day comfort. Ideal for casual outings or as a unique gift, this t-shirt is a versatile addition to any collection.",
-      category: {
-        id: 1,
-        name: "Clothes",
-        slug: "clothes",
-        image: "https://i.imgur.com/QkIa5tT.jpeg",
-        creationAt: "2026-05-15T18:06:07.000Z",
-        updatedAt: "2026-05-15T18:06:07.000Z",
-      },
-      images: [
-        "https://i.imgur.com/QkIa5tT.jpeg",
-        "https://i.imgur.com/jb5Yu0h.jpeg",
-        "https://i.imgur.com/UlxxXyG.jpeg",
-      ],
-      creationAt: "2026-05-15T18:06:07.000Z",
-      updatedAt: "2026-05-15T18:06:07.000Z",
-    },
-    {
-      id: 2,
-      title: "Classic Red Pullover Hoodie",
-      slug: "classic-red-pullover-hoodie",
-      price: 10,
-      description:
-        "Elevate your casual wardrobe with our Classic Red Pullover Hoodie. Crafted with a soft cotton blend for ultimate comfort, this vibrant red hoodie features a kangaroo pocket, adjustable drawstring hood, and ribbed cuffs for a snug fit. The timeless design ensures easy pairing with jeans or joggers for a relaxed yet stylish look, making it a versatile addition to your everyday attire.",
-      category: {
-        id: 1,
-        name: "Clothes",
-        slug: "clothes",
-        image: "https://i.imgur.com/QkIa5tT.jpeg",
-        creationAt: "2026-05-15T18:06:07.000Z",
-        updatedAt: "2026-05-15T18:06:07.000Z",
-      },
-      images: [
-        "https://i.imgur.com/1twoaDy.jpeg",
-        "https://i.imgur.com/FDwQgLy.jpeg",
-        "https://i.imgur.com/kg1ZhhH.jpeg",
-      ],
-      creationAt: "2026-05-15T18:06:07.000Z",
-      updatedAt: "2026-05-15T18:06:07.000Z",
-    },
-    {
-      id: 3,
-      title: "Classic Heather Gray Hoodie",
-      slug: "classic-heather-gray-hoodie",
-      price: 69,
-      description:
-        "Stay cozy and stylish with our Classic Heather Gray Hoodie. Crafted from soft, durable fabric, it features a kangaroo pocket, adjustable drawstring hood, and ribbed cuffs. Perfect for a casual day out or a relaxing evening in, this hoodie is a versatile addition to any wardrobe.",
-      category: {
-        id: 1,
-        name: "Clothes",
-        slug: "clothes",
-        image: "https://i.imgur.com/QkIa5tT.jpeg",
-        creationAt: "2026-05-15T18:06:07.000Z",
-        updatedAt: "2026-05-15T18:06:07.000Z",
-      },
-      images: [
-        "https://i.imgur.com/cHddUCu.jpeg",
-        "https://i.imgur.com/CFOjAgK.jpeg",
-        "https://i.imgur.com/wbIMMme.jpeg",
-      ],
-      creationAt: "2026-05-15T18:06:07.000Z",
-      updatedAt: "2026-05-15T18:06:07.000Z",
-    },
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [allCategories, setAllCategories] = useState<
+    { categoryName: string; slug: string }[]
+  >([]);
+  const filters: string[] = searchParams.getAll("category");
+  const sort = searchParams.get("sort") || "";
+  const sortOptions = [
+    { label: "Default", value: "" },
+    { label: "Price: Low to High", value: "price_asc" },
+    { label: "Price: High to Low", value: "price_desc" },
+    { label: "Name: A to Z", value: "name_asc" },
+    { label: "Name: Z to A", value: "name_desc" },
   ];
   const getAllProducts = async () => {
     try {
@@ -97,32 +39,90 @@ const Home = () => {
         "https://api.escuelajs.co/api/v1/products",
       );
       console.log("Products Response:", response);
-      const data = response.data;
-      setFeaturedProducts(data);
+      setFeaturedProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
   };
-  useEffect(() => {
-    getAllProducts();
-  }, []);
-  const allCategories = featuredProducts
-    .map((product: Product) => {
-      return {
-        categoryName: product.category.name,
-        slug: product.category.slug,
-      };
-    })
-    .filter(
-      (category: any, index: any, self: any) =>
-        index ===
-        self.findIndex(
-          (cat: any) => cat.categoryName === category.categoryName,
-        ),
-    );
-  console.log("allCategories=>", allCategories);
 
-  const handleFilter = () => {};
+  const getProductsByCategories = async (slugs: string[]) => {
+    try {
+      const responses = await Promise.all(
+        slugs.map((slug) =>
+          axios.get(
+            `https://api.escuelajs.co/api/v1/products/?categorySlug=${slug}`,
+          ),
+        ),
+      );
+      const allProducts: Product[] = responses.flatMap((res) => res.data);
+      const uniqueProducts = allProducts.filter(
+        (product, index, self) =>
+          index === self.findIndex((p) => p.id === product.id),
+      );
+      setFeaturedProducts(uniqueProducts);
+    } catch (error) {
+      console.error("Error fetching products by category:", error);
+    }
+  };
+
+  const getCategories = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.escuelajs.co/api/v1/categories",
+      );
+      console.log("Categories Response:", response);
+      const cats = response.data.map((cat: any) => ({
+        categoryName: cat.name,
+        slug: cat.slug,
+      }));
+      setAllCategories(cats);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
+  useEffect(() => {
+    if (filters.length > 0) {
+      getProductsByCategories(filters);
+    } else {
+      getAllProducts();
+    }
+  }, [searchParams]);
+
+  const handleFilterChange = (e: any) => {
+    const selected: string[] = e.target.value;
+    const params = new URLSearchParams(searchParams);
+    params.delete("category");
+    selected.forEach((slug) => params.append("category", slug));
+    setSearchParams(params);
+  };
+
+  const handleSortChange = (e: any) => {
+    const params = new URLSearchParams(searchParams);
+    if (e.target.value) {
+      params.set("sort", e.target.value);
+    } else {
+      params.delete("sort");
+    }
+    setSearchParams(params);
+  };
+
+  const getSortedProducts = () => {
+    const products = [...featuredProducts];
+    if (sort === "price_asc") return products.sort((a, b) => a.price - b.price);
+    if (sort === "price_desc")
+      return products.sort((a, b) => b.price - a.price);
+    if (sort === "name_asc")
+      return products.sort((a, b) => a.title.localeCompare(b.title));
+    if (sort === "name_desc")
+      return products.sort((a, b) => b.title.localeCompare(a.title));
+    return products;
+  };
+
   return (
     <Container maxWidth="xl">
       <Grid container>
@@ -164,11 +164,41 @@ const Home = () => {
                 mb: 2,
               }}
             >
+              <Typography variant="body1">Sort</Typography>
+              <Select
+                value={sort}
+                onChange={handleSortChange}
+                size="small"
+                displayEmpty
+                sx={{ width: { xs: "100%", sm: 180 } }}
+              >
+                {sortOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
               <Typography variant="body1">Filter</Typography>
-              <Select value={filter} defaultValue="Select a category">
-                {allCategories.map((category: any, index: any) => (
-                  <MenuItem key={index} value={category.categoryName}>
-                    {category.categoryName}
+              <Select
+                multiple
+                value={filters}
+                onChange={handleFilterChange}
+                input={<OutlinedInput size="small" />}
+                displayEmpty
+                renderValue={(selected) =>
+                  selected.length === 0
+                    ? "All"
+                    : allCategories
+                        .filter((category) => selected.includes(category.slug))
+                        .map((category) => category.categoryName)
+                        .join(", ")
+                }
+                sx={{ width: { xs: "100%", sm: 240 } }}
+              >
+                {allCategories.map((category, index) => (
+                  <MenuItem key={index} value={category.slug}>
+                    <Checkbox checked={filters.includes(category.slug)} />
+                    <ListItemText primary={category.categoryName} />
                   </MenuItem>
                 ))}
               </Select>
@@ -188,34 +218,7 @@ const Home = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              featuredProducts.map((product: Product) => (
-                // <Grid
-                //   size={{ xs: 12, sm: 4, md: 3 }}
-                //   key={product.id}
-                //   className="productCard"
-                //   onClick={() => {
-                //     navigate(`/product/${product.id}`);
-                //   }}
-                // >
-                //   <Box
-                //     component="img"
-                //     src={product.images[0]}
-                //     alt="Product"
-                //     sx={{
-                //       width: { xs: "100%" },
-                //       height: "300px",
-                //       borderRadius: 2,
-                //     }}
-                //   />
-                //   <Box>
-                //     <Typography variant="h6" className="headingColor">
-                //       {product.title}
-                //     </Typography>
-                //     <Typography variant="h5" className="headingColor">
-                //       ${product.price}
-                //     </Typography>
-                //   </Box>
-                // </Grid>
+              getSortedProducts().map((product: Product) => (
                 <ProductCard
                   key={product.id}
                   product={product}

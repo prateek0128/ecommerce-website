@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Container, Grid } from "@mui/material";
 import "../../assets/commonStyles.scss";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -11,6 +11,15 @@ const Cart = () => {
   const location = useLocation();
   const backPath = location.state?.from ?? "/";
   const { cartItems, removeFromCart } = useCart();
+  const [removingId, setRemovingId] = useState<number | null>(null);
+
+  const handleRemove = (id: number) => {
+    setRemovingId(id);
+    setTimeout(() => {
+      removeFromCart(id);
+      setRemovingId(null);
+    }, 300);
+  };
   const totalQuantity = cartItems.reduce(
     (total, item) => total + item.quantity,
     0,
@@ -51,8 +60,9 @@ const Cart = () => {
               product={item.product}
               quantity={item.quantity}
               cart={true}
-              onRemove={() => removeFromCart(item.product.id)}
-              onClick={() => navigate(`/product/${item.product.id}`)}
+              className={removingId === item.product.id ? "fadeOut" : ""}
+              onRemove={() => handleRemove(item.product.id)}
+              // onClick={() => navigate(`/product/${item.product.id}`)}
             />
           ))}
         </Grid>

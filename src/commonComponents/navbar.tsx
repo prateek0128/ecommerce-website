@@ -20,7 +20,6 @@ const Navbar = ({
       sx={{
         mt: 4,
         p: 2,
-        borderRadius: 2,
         bgcolor: "primary.main",
         display: "flex",
         justifyContent: "space-between",

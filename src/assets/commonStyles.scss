@@ -1,3 +1,22 @@
 .headingColor {
   color: #333;
 }
+
+@keyframes addedToCart {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+.addedToCart {
+  animation: addedToCart 0.3s ease;
+}
+
+.fadeOut {
+  animation: fadeOut 0.3s ease forwards;
+}

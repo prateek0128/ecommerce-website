@@ -3,6 +3,7 @@ import Home from "./pages/home/home";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import ProductDetails from "./pages/products/productDetails";
 import Navbar from "./commonComponents/navbar";
+import Footer from "./commonComponents/footer";
 import { Container } from "@mui/material";
 import AddShoppingCartRoundedIcon from "@mui/icons-material/AddShoppingCartRounded";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
@@ -12,7 +13,7 @@ function App() {
   const location = useLocation();
   return (
     <>
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" disableGutters>
         <Navbar
           title="E-Cart Store"
           rightIcon={
@@ -21,7 +22,9 @@ function App() {
             // sx={{ cursor: "pointer" }}
             />
           }
-          onCartClick={() => navigate("/cart", { state: { from: location.pathname } })}
+          onCartClick={() =>
+            navigate("/cart", { state: { from: location.pathname } })
+          }
         />
       </Container>
       <Routes>
@@ -29,6 +32,9 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
       </Routes>
+      <Container maxWidth="xl" disableGutters>
+        <Footer />
+      </Container>
     </>
   );
 }

@@ -22,6 +22,7 @@ interface ProductCardProps {
   quantity?: number;
   cart?: boolean;
   onRemove?: () => void;
+  className?: string;
 }
 
 const ProductCard = ({
@@ -30,11 +31,12 @@ const ProductCard = ({
   cart,
   onRemove,
   quantity,
+  className,
 }: ProductCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} className={className}>
       <Card
         sx={{
           cursor: "pointer",
