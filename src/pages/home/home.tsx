@@ -10,6 +10,7 @@ import {
   Checkbox,
   ListItemText,
   OutlinedInput,
+  Pagination,
 } from "@mui/material";
 import axios from "axios";
 import "./home.scss";
@@ -24,8 +25,10 @@ const Home = () => {
   const [allCategories, setAllCategories] = useState<
     { categoryName: string; slug: string }[]
   >([]);
+  const PAGE_SIZE = 10;
   const filters: string[] = searchParams.getAll("category");
   const sort = searchParams.get("sort") || "";
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const sortOptions = [
     { label: "Default", value: "" },
     { label: "Price: Low to High", value: "price_asc" },
@@ -97,18 +100,27 @@ const Home = () => {
     const selected: string[] = e.target.value;
     const params = new URLSearchParams(searchParams);
     params.delete("category");
+    params.delete("page");
     selected.forEach((slug) => params.append("category", slug));
     setSearchParams(params);
   };
 
   const handleSortChange = (e: any) => {
     const params = new URLSearchParams(searchParams);
+    params.delete("page");
     if (e.target.value) {
       params.set("sort", e.target.value);
     } else {
       params.delete("sort");
     }
     setSearchParams(params);
+  };
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", String(value));
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const getSortedProducts = () => {
@@ -122,6 +134,13 @@ const Home = () => {
       return products.sort((a, b) => b.title.localeCompare(a.title));
     return products;
   };
+
+  const getPagedProducts = () => {
+    const sorted = getSortedProducts();
+    return sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  };
+
+  const totalPages = Math.ceil(featuredProducts.length / PAGE_SIZE);
 
   return (
     <Container maxWidth="xl">
@@ -218,7 +237,7 @@ const Home = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              getSortedProducts().map((product: Product) => (
+              getPagedProducts().map((product: Product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -229,6 +248,17 @@ const Home = () => {
               ))
             )}
           </Grid>
+          {totalPages > 1 && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 4 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                shape="rounded"
+              />
+            </Box>
+          )}
         </Grid>
       </Grid>
     </Container>

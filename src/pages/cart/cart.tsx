@@ -4,6 +4,7 @@ import "../../assets/commonStyles.scss";
 import { useNavigate, useLocation } from "react-router-dom";
 import PageHeader from "../../commonComponents/pageHeader";
 import { useCart } from "../../contexts/cartContext";
+import { useToast } from "../../contexts/toastContext";
 import ProductCard from "../../commonComponents/productCard";
 import type { CartItem } from "../../types/cart";
 const Cart = () => {
@@ -11,13 +12,16 @@ const Cart = () => {
   const location = useLocation();
   const backPath = location.state?.from ?? "/";
   const { cartItems, removeFromCart } = useCart();
+  const { showToast } = useToast();
   const [removingId, setRemovingId] = useState<number | null>(null);
 
   const handleRemove = (id: number) => {
+    const item = cartItems.find((i) => i.product.id === id);
     setRemovingId(id);
     setTimeout(() => {
       removeFromCart(id);
       setRemovingId(null);
+      if (item) showToast(`"${item.product.title}" removed from cart`, "info");
     }, 300);
   };
   const totalQuantity = cartItems.reduce(

@@ -18,9 +18,11 @@ import PageHeader from "../../commonComponents/pageHeader";
 import AddShoppingCartRoundedIcon from "@mui/icons-material/AddShoppingCartRounded";
 import type { Product } from "../../types/product";
 import { useCart } from "../../contexts/cartContext";
+import { useToast } from "../../contexts/toastContext";
 const ProductDetails = () => {
   const navigate = useNavigate();
   const { cartItems, addToCart } = useCart();
+  const { showToast } = useToast();
   const [productData, setProductData] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -104,6 +106,7 @@ const ProductDetails = () => {
                   addToCart(productData, quantity);
                   setAdded(true);
                   setTimeout(() => setAdded(false), 300);
+                  showToast(`"${productData.title}" added to cart!`);
                 }}
               >
                 Add to Cart
