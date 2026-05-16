@@ -1,73 +1,57 @@
-# React + TypeScript + Vite
+# E-Cart Store
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive e-commerce web app built with React, TypeScript, and Material UI. Products and categories are fetched from the [Platzi Fake Store API](https://api.escuelajs.co/api/v1).
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## How to Clone and Run
 
-## React Compiler
+**Prerequisites:** Node.js ≥ 18
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Clone the repository
+git clone https://github.com/prateek0128/ecommerce-website.git
+cd e-commerce-web
 
-## Expanding the ESLint configuration
+# Install dependencies
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start the development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+App runs at `http://localhost:5173` by default.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Build for production
+npm run build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Preview production build
+npm run preview
 ```
+
+---
+
+## Features Implemented
+
+- **Product Listing** — Fetches all products from the Platzi Fake Store API and displays them as cards on the home page.
+- **Category Filter** — Multi-select dropdown to filter products by one or more categories (fetched dynamically from the API).
+- **Sort** — Sort products by price (low→high, high→low) or name (A→Z, Z→A).
+- **Pagination** — Client-side pagination with 10 products per page; scrolls to top on page change.
+- **Product Details** — Dedicated page per product showing image, title, price, description, and quantity selector.
+- **Add to Cart** — Select quantity and add a product to the cart from the details page.
+- **Cart Page** — View all cart items, see per-item quantity, total item count, and total price. Remove individual items with a fade-out animation.
+- **Persistent Cart** — Cart state is saved to `localStorage` and restored on page reload.
+- **Toast Notifications** — Snackbar feedback on add-to-cart and remove-from-cart actions.
+- **Back Navigation** — "Back" button on detail and cart pages returns to the previous route.
+
+---
+
+## Assumptions Made
+
+- The Platzi Fake Store API (`https://api.escuelajs.co/api/v1`) is publicly accessible and does not require authentication.
+- Sorting and pagination are handled client-side after fetching all products (the API does not guarantee stable server-side sorting).
+- When multiple categories are selected, products are fetched per category in parallel and deduplicated by `id`.
+- No checkout or payment flow is in scope — the cart is the final step.
+- Product images use the first URL in the `images` array returned by the API; broken image URLs are handled by the browser's default fallback.
+- The app is single-user with no authentication; cart data is stored in the browser's `localStorage`.
