@@ -47,4 +47,9 @@ describe("home page", () => {
     cy.visit("/?sort=price_asc");
     cy.get(".MuiSelect-select").eq(0).should("contain", "Price: Low to High");
   });
+
+  it("typing search updates the url", () => {
+    cy.get('input[placeholder="Search products"]').type("shoe");
+    cy.url().should("include", "search=shoe");
+  });
 });

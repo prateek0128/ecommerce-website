@@ -11,6 +11,7 @@ import {
   ListItemText,
   OutlinedInput,
   Pagination,
+  TextField,
 } from "@mui/material";
 import axios from "axios";
 import "./home.scss";
@@ -22,12 +23,14 @@ const Home = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [allCategories, setAllCategories] = useState<
     { categoryName: string; slug: string }[]
   >([]);
   const PAGE_SIZE = 10;
   const filters: string[] = searchParams.getAll("category");
   const sort = searchParams.get("sort") || "";
+  const search = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
   const sortOptions = [
     { label: "Default", value: "" },
@@ -38,6 +41,7 @@ const Home = () => {
   ];
   const getAllProducts = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.get(
         "https://api.escuelajs.co/api/v1/products",
       );
@@ -45,11 +49,14 @@ const Home = () => {
       setFeaturedProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const getProductsByCategories = async (slugs: string[]) => {
     try {
+      setIsLoading(true);
       const responses = await Promise.all(
         slugs.map((slug) =>
           axios.get(
@@ -65,6 +72,8 @@ const Home = () => {
       setFeaturedProducts(uniqueProducts);
     } catch (error) {
       console.error("Error fetching products by category:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -116,6 +125,18 @@ const Home = () => {
     setSearchParams(params);
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const params = new URLSearchParams(searchParams);
+    const value = e.target.value;
+    params.delete("page");
+    if (value.trim()) {
+      params.set("search", value);
+    } else {
+      params.delete("search");
+    }
+    setSearchParams(params);
+  };
+
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", String(value));
@@ -123,8 +144,15 @@ const Home = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const getSortedProducts = () => {
-    const products = [...featuredProducts];
+  const getFilteredAndSortedProducts = () => {
+    const normalizedSearch = search.trim().toLowerCase();
+    const filteredProducts = normalizedSearch
+      ? featuredProducts.filter((product) =>
+          product.title.toLowerCase().includes(normalizedSearch) ||
+          String(product.price).includes(normalizedSearch),
+        )
+      : featuredProducts;
+    const products = [...filteredProducts];
     if (sort === "price_asc") return products.sort((a, b) => a.price - b.price);
     if (sort === "price_desc")
       return products.sort((a, b) => b.price - a.price);
@@ -136,11 +164,12 @@ const Home = () => {
   };
 
   const getPagedProducts = () => {
-    const sorted = getSortedProducts();
+    const sorted = getFilteredAndSortedProducts();
     return sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   };
 
-  const totalPages = Math.ceil(featuredProducts.length / PAGE_SIZE);
+  const totalProducts = getFilteredAndSortedProducts().length;
+  const totalPages = Math.ceil(totalProducts / PAGE_SIZE);
 
   return (
     <Container maxWidth="xl">
@@ -221,10 +250,17 @@ const Home = () => {
                   </MenuItem>
                 ))}
               </Select>
+              <TextField
+                value={search}
+                onChange={handleSearchChange}
+                size="small"
+                placeholder="Search products"
+                sx={{ width: { xs: "100%", sm: 220 } }}
+              />
             </Box>
           </Box>
           <Grid container spacing={2} sx={{ mt: 2 }}>
-            {featuredProducts.length === 0 ? (
+            {isLoading ? (
               <Box
                 sx={{
                   display: "flex",
@@ -235,6 +271,10 @@ const Home = () => {
                 }}
               >
                 <CircularProgress />
+              </Box>
+            ) : totalProducts === 0 ? (
+              <Box sx={{ width: "100%", textAlign: "center", mt: 2 }}>
+                <Typography variant="body1">No products found.</Typography>
               </Box>
             ) : (
               getPagedProducts().map((product: Product) => (
